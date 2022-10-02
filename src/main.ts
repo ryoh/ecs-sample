@@ -1,8 +1,8 @@
-import { App, Duration, Stack, StackProps } from 'aws-cdk-lib';
+import { App, Stack, StackProps } from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import * as ecr from 'aws-cdk-lib/aws-ecr';
+import { Repository } from 'aws-cdk-lib/aws-ecr';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
-import * as elv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as ecs_pattern from 'aws-cdk-lib/aws-ecs-patterns';
 import { Construct } from 'constructs';
 
 export class EcsSample extends Stack {
@@ -47,55 +47,27 @@ export class EcsSample extends Stack {
       service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
     });
 
-    // LoadBalancer
-    const lb = new elv2.ApplicationLoadBalancer(this, 'LB', {
-      vpc,
-      internetFacing: false,
-    });
-    // Listener
-    const listener = lb.addListener('Listener', {
-      port: 80,
-    });
-
     // ECS
-    // TaskDef
-    const taskDefinition = new ecs.TaskDefinition(this, 'TaskDef', {
-      compatibility: ecs.Compatibility.FARGATE,
-      memoryMiB: '512',
-      cpu: '256',
-    });
-    const container = taskDefinition.addContainer('AppContainer', {
-      image: ecs.EcrImage.fromEcrRepository(ecr.Repository.fromRepositoryName(this, 'HelloRepo', 'hello-server'), 'latest'),
-    });
-    container.addEnvironment('PORT', '3000');
-    container.addPortMappings(
-      {
-        containerPort: 3000,
-        protocol: ecs.Protocol.TCP,
-      },
-    );
     // Cluster
     const cluster = new ecs.Cluster(this, 'Cluster', {
       vpc,
+    });
 
-    });
-    // ECS
-    const service = new ecs.FargateService(this, 'Service', {
+    new ecs_pattern.ApplicationLoadBalancedFargateService(this, 'Service', {
       cluster,
-      taskDefinition,
-      assignPublicIp: false,
-      healthCheckGracePeriod: Duration.minutes(1),
-    });
-    service.registerLoadBalancerTargets(
-      {
-        containerName: container.containerName,
+      memoryLimitMiB: 1024,
+      cpu: 512,
+      publicLoadBalancer: false,
+      taskImageOptions: {
+        image: ecs.EcrImage.fromEcrRepository(Repository.fromRepositoryName(this, 'AppRepo', 'hello-server')),
+        containerName: 'app',
         containerPort: 3000,
-        newTargetGroupId: 'ECS',
-        listener: ecs.ListenerConfig.applicationListener(listener, {
-          protocol: elv2.ApplicationProtocol.HTTP,
-        }),
+        environment: {
+          PORT: '3000',
+        },
       },
-    );
+      desiredCount: 1,
+    });
   }
 }
 
