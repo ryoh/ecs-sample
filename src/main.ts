@@ -1,6 +1,6 @@
 import { App, Stack, StackProps } from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import { Repository } from 'aws-cdk-lib/aws-ecr';
+import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ecs_pattern from 'aws-cdk-lib/aws-ecs-patterns';
 import { Construct } from 'constructs';
@@ -59,7 +59,7 @@ export class EcsSample extends Stack {
       cpu: 512,
       publicLoadBalancer: false,
       taskImageOptions: {
-        image: ecs.EcrImage.fromEcrRepository(Repository.fromRepositoryName(this, 'AppRepo', 'hello-server')),
+        image: ecs.EcrImage.fromEcrRepository(ecr.Repository.fromRepositoryName(this, 'AppRepo', 'hello-server')),
         containerName: 'app',
         containerPort: 3000,
         environment: {
