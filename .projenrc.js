@@ -1,8 +1,40 @@
 const { awscdk } = require('projen');
 const project = new awscdk.AwsCdkTypeScriptApp({
   cdkVersion: '2.44.0',
+  cdkVersionPinning: true,
   defaultReleaseBranch: 'main',
-  name: 'workspace',
+  name: 'ecs-sample',
+  devContainer: true,
+  context: {
+    ['target']: 'dev',
+    ['dev']: {
+      ['region']: 'ap-northeast-1',
+      ['cidr']: '10.0.0.0/16',
+      ['ecs']: {
+        ['containerPort']: '3000',
+        ['containerName']: 'app',
+        ['ecrRepoName']: 'hello-server',
+      },
+    },
+    ['stg']: {
+      ['region']: 'ap-northeast-1',
+      ['cidr']: '10.0.0.0/16',
+      ['ecs']: {
+        ['containerPort']: '3000',
+        ['containerName']: 'app',
+        ['ecrRepoName']: 'hello-server',
+      },
+    },
+    ['prod']: {
+      ['region']: 'ap-northeast-1',
+      ['cidr']: '10.0.0.0/16',
+      ['ecs']: {
+        ['containerPort']: '3000',
+        ['containerName']: 'app',
+        ['ecrRepoName']: 'hello-server',
+      },
+    },
+  },
 
   // deps: [],                /* Runtime dependencies of this module. */
   // description: undefined,  /* The description is just a string that helps people understand the purpose of the package. */
