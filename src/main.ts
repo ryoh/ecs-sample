@@ -4,6 +4,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ecs_pattern from 'aws-cdk-lib/aws-ecs-patterns';
+import { NetworkLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Construct } from 'constructs';
 
 export class EcsSample extends Stack {
@@ -48,6 +49,19 @@ export class EcsSample extends Stack {
       service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,
     });
 
+    // LoadBalancer
+    // SecurityGroup
+    const lbsg = new ec2.SecurityGroup(this, 'EcsServiceSecurityGroup', {
+      vpc,
+      allowAllOutbound: true,
+    });
+    lbsg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(3000), 'For Application Port');
+    // LoadBalancer
+    const lb = new NetworkLoadBalancer(this, 'EcsLoadBalancer', {
+      vpc,
+      internetFacing: false,
+    });
+
     // ECS
     // Cluster
     const cluster = new ecs.Cluster(this, 'Cluster', {
@@ -59,7 +73,10 @@ export class EcsSample extends Stack {
       cluster,
       memoryLimitMiB: 1024,
       cpu: 512,
+      assignPublicIp: false,
       publicLoadBalancer: false,
+      loadBalancer: lb,
+      listenerPort: 80,
       taskImageOptions: {
         image: ecs.EcrImage.fromEcrRepository(ecr.Repository.fromRepositoryName(this, 'AppRepo', 'hello-server')),
         containerName: 'app',
