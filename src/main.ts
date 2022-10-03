@@ -12,7 +12,7 @@ export class EcsSample extends Stack {
 
     // VPC
     const vpc = new ec2.Vpc(this, 'Vpc', {
-      maxAzs: 2,
+      maxAzs: 1,
       cidr: '10.0.0.0/16',
       subnetConfiguration: [
         {
@@ -75,18 +75,32 @@ export class EcsSample extends Stack {
     const restApi = new apigw.RestApi(this, 'APIGateway', {
       restApiName: 'HelloApi',
     });
-    restApi.root.addProxy({
-      defaultIntegration: new apigw.Integration({
-        type: apigw.IntegrationType.HTTP_PROXY,
-        options: {
-          connectionType: apigw.ConnectionType.VPC_LINK,
-          vpcLink: new apigw.VpcLink(this, 'VpcLink', {
-            targets: [
-              service.loadBalancer,
-            ],
-          }),
+    const link = new apigw.VpcLink(this, 'VpcLink', {
+      description: `Connects ${id} to ${id}/Gateway`,
+      targets: [
+        service.loadBalancer,
+      ],
+    });
+    const integration = new apigw.Integration({
+      integrationHttpMethod: 'ANY',
+      type: apigw.IntegrationType.HTTP_PROXY,
+      options: {
+        connectionType: apigw.ConnectionType.VPC_LINK,
+        vpcLink: link,
+        requestParameters: {
+          'integration.request.path.proxy': 'method.request.path.proxy',
         },
-      }),
+      },
+      uri: `http://${service.loadBalancer.loadBalancerDnsName}/{proxy}`,
+    });
+    const proxy = new apigw.ProxyResource(this, 'Proxy', {
+      parent: restApi.root,
+      anyMethod: false,
+    });
+    proxy.addMethod('ANY', integration, {
+      requestParameters: {
+        'method.request.path.proxy': true,
+      },
     });
   }
 }
