@@ -29,14 +29,6 @@ exports[`Snapshot 1`] = `
         ],
       },
     },
-    "ServiceLoadBalancerDNSEC5B149E": {
-      "Value": {
-        "Fn::GetAtt": [
-          "ServiceLBE9A1ADBC",
-          "DNSName",
-        ],
-      },
-    },
   },
   "Parameters": {
     "BootstrapVersion": {
@@ -73,7 +65,7 @@ exports[`Snapshot 1`] = `
                 "http://",
                 {
                   "Fn::GetAtt": [
-                    "ServiceLBE9A1ADBC",
+                    "EcsLoadBalancerED63ACE7",
                     "DNSName",
                   ],
                 },
@@ -146,7 +138,7 @@ exports[`Snapshot 1`] = `
       "Type": "AWS::IAM::Role",
       "UpdateReplacePolicy": "Retain",
     },
-    "APIGatewayDeploymentF0E5ED0Aa1673f16e8da0c5dfec394a4691fccf2": {
+    "APIGatewayDeploymentF0E5ED0A19ce00c4800a2414cac57b8150c6fe77": {
       "DependsOn": [
         "APIGatewayANY3E5F1055",
         "ProxyANY3B49B997",
@@ -166,7 +158,7 @@ exports[`Snapshot 1`] = `
       ],
       "Properties": {
         "DeploymentId": {
-          "Ref": "APIGatewayDeploymentF0E5ED0Aa1673f16e8da0c5dfec394a4691fccf2",
+          "Ref": "APIGatewayDeploymentF0E5ED0A19ce00c4800a2414cac57b8150c6fe77",
         },
         "RestApiId": {
           "Ref": "APIGateway71B6BBE0",
@@ -177,6 +169,78 @@ exports[`Snapshot 1`] = `
     },
     "ClusterEB0386A7": {
       "Type": "AWS::ECS::Cluster",
+    },
+    "EcsLoadBalancerED63ACE7": {
+      "Properties": {
+        "LoadBalancerAttributes": [
+          {
+            "Key": "deletion_protection.enabled",
+            "Value": "false",
+          },
+        ],
+        "Scheme": "internal",
+        "Subnets": [
+          {
+            "Ref": "VpcisolateSubnet1Subnet0624AACE",
+          },
+        ],
+        "Type": "network",
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+    },
+    "EcsLoadBalancerPublicListener147AA0DC": {
+      "Properties": {
+        "DefaultActions": [
+          {
+            "TargetGroupArn": {
+              "Ref": "EcsLoadBalancerPublicListenerECSGroupDA7E11B8",
+            },
+            "Type": "forward",
+          },
+        ],
+        "LoadBalancerArn": {
+          "Ref": "EcsLoadBalancerED63ACE7",
+        },
+        "Port": 80,
+        "Protocol": "TCP",
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+    },
+    "EcsLoadBalancerPublicListenerECSGroupDA7E11B8": {
+      "Properties": {
+        "Port": 3000,
+        "Protocol": "TCP",
+        "TargetType": "ip",
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+    },
+    "EcsServiceSecurityGroupCD98B82C": {
+      "Properties": {
+        "GroupDescription": "test/EcsServiceSecurityGroup",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "For Application Port",
+            "FromPort": 3000,
+            "IpProtocol": "tcp",
+            "ToPort": 3000,
+          },
+        ],
+        "VpcId": {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
     },
     "ProxyANY3B49B997": {
       "Properties": {
@@ -199,7 +263,7 @@ exports[`Snapshot 1`] = `
                 "http://",
                 {
                   "Fn::GetAtt": [
-                    "ServiceLBE9A1ADBC",
+                    "EcsLoadBalancerED63ACE7",
                     "DNSName",
                   ],
                 },
@@ -237,8 +301,8 @@ exports[`Snapshot 1`] = `
     },
     "Service9571FDD8": {
       "DependsOn": [
-        "ServiceLBPublicListenerECSGroup0CC8688C",
-        "ServiceLBPublicListener46709EAA",
+        "EcsLoadBalancerPublicListenerECSGroupDA7E11B8",
+        "EcsLoadBalancerPublicListener147AA0DC",
       ],
       "Properties": {
         "Cluster": {
@@ -257,7 +321,7 @@ exports[`Snapshot 1`] = `
             "ContainerName": "app",
             "ContainerPort": 3000,
             "TargetGroupArn": {
-              "Ref": "ServiceLBPublicListenerECSGroup0CC8688C",
+              "Ref": "EcsLoadBalancerPublicListenerECSGroupDA7E11B8",
             },
           },
         ],
@@ -284,53 +348,6 @@ exports[`Snapshot 1`] = `
         },
       },
       "Type": "AWS::ECS::Service",
-    },
-    "ServiceLBE9A1ADBC": {
-      "Properties": {
-        "LoadBalancerAttributes": [
-          {
-            "Key": "deletion_protection.enabled",
-            "Value": "false",
-          },
-        ],
-        "Scheme": "internal",
-        "Subnets": [
-          {
-            "Ref": "VpcisolateSubnet1Subnet0624AACE",
-          },
-        ],
-        "Type": "network",
-      },
-      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-    },
-    "ServiceLBPublicListener46709EAA": {
-      "Properties": {
-        "DefaultActions": [
-          {
-            "TargetGroupArn": {
-              "Ref": "ServiceLBPublicListenerECSGroup0CC8688C",
-            },
-            "Type": "forward",
-          },
-        ],
-        "LoadBalancerArn": {
-          "Ref": "ServiceLBE9A1ADBC",
-        },
-        "Port": 80,
-        "Protocol": "TCP",
-      },
-      "Type": "AWS::ElasticLoadBalancingV2::Listener",
-    },
-    "ServiceLBPublicListenerECSGroup0CC8688C": {
-      "Properties": {
-        "Port": 3000,
-        "Protocol": "TCP",
-        "TargetType": "ip",
-        "VpcId": {
-          "Ref": "Vpc8378EB38",
-        },
-      },
-      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
     },
     "ServiceSecurityGroupEEA09B68": {
       "Properties": {
@@ -739,7 +756,7 @@ exports[`Snapshot 1`] = `
         "Name": "testVpcLink24B0037F",
         "TargetArns": [
           {
-            "Ref": "ServiceLBE9A1ADBC",
+            "Ref": "EcsLoadBalancerED63ACE7",
           },
         ],
       },
