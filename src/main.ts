@@ -1,4 +1,5 @@
 import { App, Stack, StackProps } from 'aws-cdk-lib';
+import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
@@ -53,7 +54,8 @@ export class EcsSample extends Stack {
       vpc,
     });
 
-    new ecs_pattern.ApplicationLoadBalancedFargateService(this, 'Service', {
+    // Service
+    const service = new ecs_pattern.NetworkLoadBalancedFargateService(this, 'Service', {
       cluster,
       memoryLimitMiB: 1024,
       cpu: 512,
@@ -67,6 +69,24 @@ export class EcsSample extends Stack {
         },
       },
       desiredCount: 1,
+    });
+
+    // API Gateway
+    const restApi = new apigw.RestApi(this, 'APIGateway', {
+      restApiName: 'HelloApi',
+    });
+    restApi.root.addProxy({
+      defaultIntegration: new apigw.Integration({
+        type: apigw.IntegrationType.HTTP_PROXY,
+        options: {
+          connectionType: apigw.ConnectionType.VPC_LINK,
+          vpcLink: new apigw.VpcLink(this, 'VpcLink', {
+            targets: [
+              service.loadBalancer,
+            ],
+          }),
+        },
+      }),
     });
   }
 }
