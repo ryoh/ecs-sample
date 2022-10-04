@@ -1,17 +1,25 @@
-import { App, Aspects, Stack, StackProps } from 'aws-cdk-lib';
+import { App, Stack, StackProps } from 'aws-cdk-lib';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ecs_pattern from 'aws-cdk-lib/aws-ecs-patterns';
-import { NetworkLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
-import { AwsSolutionsChecks } from 'cdk-nag';
+import * as elv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 export class EcsSample extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
     super(scope, id, props);
 
+    // FlowLogs
+    const logGroup = new logs.LogGroup(this, 'FlowLog');
+    const role = new iam.Role(this, 'FlowLogRole', {
+      assumedBy: new iam.ServicePrincipal('vpc-flow-logs.amazonaws.com'),
+    });
     // VPC
     const vpc = new ec2.Vpc(this, 'Vpc', {
       maxAzs: 1,
@@ -23,6 +31,9 @@ export class EcsSample extends Stack {
           cidrMask: 24,
         },
       ],
+    });
+    vpc.addFlowLog('FlowLog', {
+      destination: ec2.FlowLogDestination.toCloudWatchLogs(logGroup, role),
     });
 
     // VPC Endpoint (for ECS)
@@ -51,22 +62,41 @@ export class EcsSample extends Stack {
     });
 
     // LoadBalancer
+    const lb = new elv2.NetworkLoadBalancer(this, 'EcsLoadBalancer', {
+      vpc,
+      internetFacing: false,
+    });
+    // AccessLog
+    const accessLogBucket = new s3.Bucket(this, 'EcsLoadBalancerAccessLog', {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+    });
+    NagSuppressions.addResourceSuppressions(accessLogBucket, [
+      {
+        id: 'AwsSolutions-S1',
+        reason: 'NLBアクセスログ保存用バケットのため、これ自体のアクセスログは不要',
+      },
+    ]);
+    lb.logAccessLogs(accessLogBucket);
     // SecurityGroup
     const lbsg = new ec2.SecurityGroup(this, 'EcsServiceSecurityGroup', {
       vpc,
       allowAllOutbound: true,
     });
     lbsg.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(3000), 'For Application Port');
-    // LoadBalancer
-    const lb = new NetworkLoadBalancer(this, 'EcsLoadBalancer', {
-      vpc,
-      internetFacing: false,
-    });
+    NagSuppressions.addResourceSuppressions(lbsg, [
+      {
+        id: 'AwsSolutions-EC23',
+        reason: '内向けNLBのため、一旦全開放状態とする。可能であればAPIGatewayからのアクセスに絞ること',
+      },
+    ]);
 
     // ECS
     // Cluster
     const cluster = new ecs.Cluster(this, 'Cluster', {
       vpc,
+      containerInsights: true,
     });
 
     // Service
@@ -88,6 +118,18 @@ export class EcsSample extends Stack {
       },
       desiredCount: 1,
     });
+    NagSuppressions.addResourceSuppressionsByPath(this, '/workspace-dev/Service/TaskDef/Resource', [
+      {
+        id: 'AwsSolutions-ECS2',
+        reason: 'ポート番号は秘匿情報ではないため直接設定とする。',
+      },
+    ]);
+    NagSuppressions.addResourceSuppressionsByPath(this, '/workspace-dev/Service/TaskDef/ExecutionRole/DefaultPolicy/Resource', [
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: '自動的に生成されるIAMロールの警告を無効化',
+      },
+    ]);
 
     // API Gateway
     const restApi = new apigw.RestApi(this, 'APIGateway', {
@@ -105,20 +147,12 @@ export class EcsSample extends Stack {
       options: {
         connectionType: apigw.ConnectionType.VPC_LINK,
         vpcLink: link,
-        requestParameters: {
-          'integration.request.path.proxy': 'method.request.path.proxy',
-        },
       },
       uri: `http://${service.loadBalancer.loadBalancerDnsName}/{proxy}`,
     });
-    const proxy = new apigw.ProxyResource(this, 'Proxy', {
-      parent: restApi.root,
-      anyMethod: false,
-    });
-    proxy.addMethod('ANY', integration, {
-      requestParameters: {
-        'method.request.path.proxy': true,
-      },
+    restApi.root.addProxy({
+      defaultIntegration: integration,
+      anyMethod: true,
     });
   }
 }
@@ -134,6 +168,6 @@ const app = new App();
 new EcsSample(app, 'workspace-dev', { env: devEnv });
 // new MyStack(app, 'workspace-prod', { env: prodEnv });
 
-Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
+//Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
 
 app.synth();
