@@ -1,10 +1,11 @@
-import { App, Stack, StackProps } from 'aws-cdk-lib';
+import { App, Aspects, Stack, StackProps } from 'aws-cdk-lib';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as ecs_pattern from 'aws-cdk-lib/aws-ecs-patterns';
 import { NetworkLoadBalancer } from 'aws-cdk-lib/aws-elasticloadbalancingv2';
+import { AwsSolutionsChecks } from 'cdk-nag';
 import { Construct } from 'constructs';
 
 export class EcsSample extends Stack {
@@ -132,5 +133,7 @@ const app = new App();
 
 new EcsSample(app, 'workspace-dev', { env: devEnv });
 // new MyStack(app, 'workspace-prod', { env: prodEnv });
+
+Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
 
 app.synth();
