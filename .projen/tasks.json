@@ -100,6 +100,15 @@
         }
       ]
     },
+    "docgen": {
+      "name": "docgen",
+      "description": "Generate TypeScript API reference docs/",
+      "steps": [
+        {
+          "exec": "typedoc src --disableSources --out docs/"
+        }
+      ]
+    },
     "eject": {
       "name": "eject",
       "description": "Remove projen from the project",
@@ -129,6 +138,9 @@
       "name": "post-compile",
       "description": "Runs after successful compilation",
       "steps": [
+        {
+          "spawn": "docgen"
+        },
         {
           "spawn": "synth:silent"
         }
