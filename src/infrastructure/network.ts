@@ -53,6 +53,7 @@ export class Network extends Construct {
     vpc.addGatewayEndpoint('S3Endpoint', {
       service: ec2.GatewayVpcEndpointAwsService.S3,
     });
+
     // optional 1 (for use SSM/Secrets)
     vpc.addInterfaceEndpoint('SSMInterface', {
       service: ec2.InterfaceVpcEndpointAwsService.SSM,
@@ -60,6 +61,7 @@ export class Network extends Construct {
     vpc.addInterfaceEndpoint('SecretsEndpoint', {
       service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
     });
+
     // optional 2 (for application)
     vpc.addGatewayEndpoint('DynamoDBEndpoint', {
       service: ec2.GatewayVpcEndpointAwsService.DYNAMODB,

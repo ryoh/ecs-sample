@@ -10,14 +10,72 @@ exports[`Snapshot 1`] = `
     },
   },
   "Resources": {
-    "EcsLoadBalancerAccessLog03BF6BC6": {
-      "DeletionPolicy": "Retain",
+    "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+      "DependsOn": [
+        "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-ap-northeast-1",
+          },
+          "S3Key": "e57c1acaa363d7d2b81736776007a7091bc73dff4aeb8135627c4511a51e7dca.zip",
+        },
+        "Description": {
+          "Fn::Join": [
+            "",
+            [
+              "Lambda function for auto-deleting objects in ",
+              {
+                "Ref": "EcsLoadBalancerAccessLogLogBucket0705AFF0",
+              },
+              " S3 bucket.",
+            ],
+          ],
+        },
+        "Handler": "__entrypoint__.handler",
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs14.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:\${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "EcsLoadBalancerAccessLogLogBucket0705AFF0": {
+      "DeletionPolicy": "Delete",
       "Metadata": {
         "cdk_nag": {
           "rules_to_suppress": [
             {
               "id": "AwsSolutions-S1",
-              "reason": "Bucket for storing access logs, so no access logs are needed for this bucket itself.",
+              "reason": "Bucket for storing access logs, so no needed for itself.",
             },
           ],
         },
@@ -38,14 +96,39 @@ exports[`Snapshot 1`] = `
           "IgnorePublicAcls": true,
           "RestrictPublicBuckets": true,
         },
+        "Tags": [
+          {
+            "Key": "aws-cdk:auto-delete-objects",
+            "Value": "true",
+          },
+        ],
       },
       "Type": "AWS::S3::Bucket",
-      "UpdateReplacePolicy": "Retain",
+      "UpdateReplacePolicy": "Delete",
     },
-    "EcsLoadBalancerAccessLogPolicy06C55B9A": {
+    "EcsLoadBalancerAccessLogLogBucketAutoDeleteObjectsCustomResource00160253": {
+      "DeletionPolicy": "Delete",
+      "DependsOn": [
+        "EcsLoadBalancerAccessLogLogBucketPolicyF46A4478",
+      ],
+      "Properties": {
+        "BucketName": {
+          "Ref": "EcsLoadBalancerAccessLogLogBucket0705AFF0",
+        },
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::S3AutoDeleteObjects",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "EcsLoadBalancerAccessLogLogBucketPolicyF46A4478": {
       "Properties": {
         "Bucket": {
-          "Ref": "EcsLoadBalancerAccessLog03BF6BC6",
+          "Ref": "EcsLoadBalancerAccessLogLogBucket0705AFF0",
         },
         "PolicyDocument": {
           "Statement": [
@@ -63,7 +146,7 @@ exports[`Snapshot 1`] = `
               "Resource": [
                 {
                   "Fn::GetAtt": [
-                    "EcsLoadBalancerAccessLog03BF6BC6",
+                    "EcsLoadBalancerAccessLogLogBucket0705AFF0",
                     "Arn",
                   ],
                 },
@@ -73,7 +156,45 @@ exports[`Snapshot 1`] = `
                     [
                       {
                         "Fn::GetAtt": [
-                          "EcsLoadBalancerAccessLog03BF6BC6",
+                          "EcsLoadBalancerAccessLogLogBucket0705AFF0",
+                          "Arn",
+                        ],
+                      },
+                      "/*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            {
+              "Action": [
+                "s3:GetBucket*",
+                "s3:List*",
+                "s3:DeleteObject*",
+              ],
+              "Effect": "Allow",
+              "Principal": {
+                "AWS": {
+                  "Fn::GetAtt": [
+                    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+                    "Arn",
+                  ],
+                },
+              },
+              "Resource": [
+                {
+                  "Fn::GetAtt": [
+                    "EcsLoadBalancerAccessLogLogBucket0705AFF0",
+                    "Arn",
+                  ],
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      {
+                        "Fn::GetAtt": [
+                          "EcsLoadBalancerAccessLogLogBucket0705AFF0",
                           "Arn",
                         ],
                       },
@@ -113,7 +234,7 @@ exports[`Snapshot 1`] = `
                   [
                     {
                       "Fn::GetAtt": [
-                        "EcsLoadBalancerAccessLog03BF6BC6",
+                        "EcsLoadBalancerAccessLogLogBucket0705AFF0",
                         "Arn",
                       ],
                     },
@@ -143,7 +264,7 @@ exports[`Snapshot 1`] = `
                   [
                     {
                       "Fn::GetAtt": [
-                        "EcsLoadBalancerAccessLog03BF6BC6",
+                        "EcsLoadBalancerAccessLogLogBucket0705AFF0",
                         "Arn",
                       ],
                     },
@@ -164,7 +285,7 @@ exports[`Snapshot 1`] = `
               },
               "Resource": {
                 "Fn::GetAtt": [
-                  "EcsLoadBalancerAccessLog03BF6BC6",
+                  "EcsLoadBalancerAccessLogLogBucket0705AFF0",
                   "Arn",
                 ],
               },
@@ -177,8 +298,9 @@ exports[`Snapshot 1`] = `
     },
     "EcsLoadBalancerED63ACE7": {
       "DependsOn": [
-        "EcsLoadBalancerAccessLogPolicy06C55B9A",
-        "EcsLoadBalancerAccessLog03BF6BC6",
+        "EcsLoadBalancerAccessLogLogBucketAutoDeleteObjectsCustomResource00160253",
+        "EcsLoadBalancerAccessLogLogBucketPolicyF46A4478",
+        "EcsLoadBalancerAccessLogLogBucket0705AFF0",
       ],
       "Properties": {
         "LoadBalancerAttributes": [
@@ -193,7 +315,7 @@ exports[`Snapshot 1`] = `
           {
             "Key": "access_logs.s3.bucket",
             "Value": {
-              "Ref": "EcsLoadBalancerAccessLog03BF6BC6",
+              "Ref": "EcsLoadBalancerAccessLogLogBucket0705AFF0",
             },
           },
           {
@@ -204,53 +326,17 @@ exports[`Snapshot 1`] = `
         "Scheme": "internal",
         "Subnets": [
           {
-            "Ref": "VpcapplicationSubnet1Subnet8B68205B",
+            "Ref": "EcsNetworkVpcapplicationSubnet1SubnetED212D1D",
           },
           {
-            "Ref": "VpcapplicationSubnet2Subnet29670962",
+            "Ref": "EcsNetworkVpcapplicationSubnet2SubnetB57EA027",
           },
         ],
         "Type": "network",
       },
       "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
     },
-    "EcsServiceSecurityGroupCD98B82C": {
-      "Metadata": {
-        "cdk_nag": {
-          "rules_to_suppress": [
-            {
-              "id": "AwsSolutions-EC23",
-              "is_reason_encoded": true,
-              "reason": "5YaF5ZCR44GRTkxC44Gu44Gf44KB44CB5LiA5pem5YWo6ZaL5pS+54q25oWL44Go44GZ44KL44CC5Y+v6IO944Gn44GC44KM44GwQVBJR2F0ZXdheeOBi+OCieOBruOCouOCr+OCu+OCueOBq+e1nuOCi+OBk+OBqA==",
-            },
-          ],
-        },
-      },
-      "Properties": {
-        "GroupDescription": "test/EcsServiceSecurityGroup",
-        "SecurityGroupEgress": [
-          {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "Allow all outbound traffic by default",
-            "IpProtocol": "-1",
-          },
-        ],
-        "SecurityGroupIngress": [
-          {
-            "CidrIp": "0.0.0.0/0",
-            "Description": "For Application Port",
-            "FromPort": 3000,
-            "IpProtocol": "tcp",
-            "ToPort": 3000,
-          },
-        ],
-        "VpcId": {
-          "Ref": "Vpc8378EB38",
-        },
-      },
-      "Type": "AWS::EC2::SecurityGroup",
-    },
-    "FlowLog22E63E81": {
+    "EcsNetworkFlowLog01409077": {
       "DeletionPolicy": "Retain",
       "Properties": {
         "RetentionInDays": 731,
@@ -258,64 +344,7 @@ exports[`Snapshot 1`] = `
       "Type": "AWS::Logs::LogGroup",
       "UpdateReplacePolicy": "Retain",
     },
-    "FlowLogRoleCB27E7DF": {
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "vpc-flow-logs.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "FlowLogRoleDefaultPolicy9078999B": {
-      "Properties": {
-        "PolicyDocument": {
-          "Statement": [
-            {
-              "Action": [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-                "logs:DescribeLogStreams",
-              ],
-              "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
-                  "FlowLog22E63E81",
-                  "Arn",
-                ],
-              },
-            },
-            {
-              "Action": "iam:PassRole",
-              "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
-                  "FlowLogRoleCB27E7DF",
-                  "Arn",
-                ],
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "FlowLogRoleDefaultPolicy9078999B",
-        "Roles": [
-          {
-            "Ref": "FlowLogRoleCB27E7DF",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "Vpc8378EB38": {
+    "EcsNetworkVpcCDBB0238": {
       "Properties": {
         "CidrBlock": "10.0.0.0/16",
         "EnableDnsHostnames": true,
@@ -324,32 +353,32 @@ exports[`Snapshot 1`] = `
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc",
+            "Value": "test/EcsNetwork/Vpc",
           },
         ],
       },
       "Type": "AWS::EC2::VPC",
     },
-    "VpcDynamoDBEndpoint43D8F30A": {
+    "EcsNetworkVpcDynamoDBEndpoint00EEFCF1": {
       "Properties": {
         "RouteTableIds": [
           {
-            "Ref": "VpcapplicationSubnet1RouteTableF03E8296",
+            "Ref": "EcsNetworkVpcapplicationSubnet1RouteTable0A33BC1B",
           },
           {
-            "Ref": "VpcapplicationSubnet2RouteTable17378AED",
+            "Ref": "EcsNetworkVpcapplicationSubnet2RouteTable92610BA9",
           },
           {
-            "Ref": "VpcingressSubnet1RouteTable804C7A26",
+            "Ref": "EcsNetworkVpcingressSubnet1RouteTable20245959",
           },
           {
-            "Ref": "VpcingressSubnet2RouteTable8B0E23A7",
+            "Ref": "EcsNetworkVpcingressSubnet2RouteTableF984A02B",
           },
           {
-            "Ref": "VpcdatabaseSubnet1RouteTableF3B572E4",
+            "Ref": "EcsNetworkVpcdatabaseSubnet1RouteTable9D7AFF58",
           },
           {
-            "Ref": "VpcdatabaseSubnet2RouteTable1E50BD8E",
+            "Ref": "EcsNetworkVpcdatabaseSubnet2RouteTable26547453",
           },
         ],
         "ServiceName": {
@@ -366,18 +395,18 @@ exports[`Snapshot 1`] = `
         },
         "VpcEndpointType": "Gateway",
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::VPCEndpoint",
     },
-    "VpcEcrDkrEndpoint764F3A9A": {
+    "EcsNetworkVpcEcrDkrEndpointF8C85505": {
       "Properties": {
         "PrivateDnsEnabled": true,
         "SecurityGroupIds": [
           {
             "Fn::GetAtt": [
-              "VpcEcrDkrEndpointSecurityGroup01F64E22",
+              "EcsNetworkVpcEcrDkrEndpointSecurityGroupB8C9C0EF",
               "GroupId",
             ],
           },
@@ -385,22 +414,22 @@ exports[`Snapshot 1`] = `
         "ServiceName": "com.amazonaws.ap-northeast-1.ecr.dkr",
         "SubnetIds": [
           {
-            "Ref": "VpcapplicationSubnet1Subnet8B68205B",
+            "Ref": "EcsNetworkVpcapplicationSubnet1SubnetED212D1D",
           },
           {
-            "Ref": "VpcapplicationSubnet2Subnet29670962",
+            "Ref": "EcsNetworkVpcapplicationSubnet2SubnetB57EA027",
           },
         ],
         "VpcEndpointType": "Interface",
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::VPCEndpoint",
     },
-    "VpcEcrDkrEndpointSecurityGroup01F64E22": {
+    "EcsNetworkVpcEcrDkrEndpointSecurityGroupB8C9C0EF": {
       "Properties": {
-        "GroupDescription": "test/Vpc/EcrDkrEndpoint/SecurityGroup",
+        "GroupDescription": "test/EcsNetwork/Vpc/EcrDkrEndpoint/SecurityGroup",
         "SecurityGroupEgress": [
           {
             "CidrIp": "0.0.0.0/0",
@@ -412,7 +441,7 @@ exports[`Snapshot 1`] = `
           {
             "CidrIp": {
               "Fn::GetAtt": [
-                "Vpc8378EB38",
+                "EcsNetworkVpcCDBB0238",
                 "CidrBlock",
               ],
             },
@@ -423,7 +452,7 @@ exports[`Snapshot 1`] = `
                   "from ",
                   {
                     "Fn::GetAtt": [
-                      "Vpc8378EB38",
+                      "EcsNetworkVpcCDBB0238",
                       "CidrBlock",
                     ],
                   },
@@ -439,22 +468,22 @@ exports[`Snapshot 1`] = `
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc",
+            "Value": "test/EcsNetwork/Vpc",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "VpcEcrEndpoint0BE46338": {
+    "EcsNetworkVpcEcrEndpoint7DB1AB18": {
       "Properties": {
         "PrivateDnsEnabled": true,
         "SecurityGroupIds": [
           {
             "Fn::GetAtt": [
-              "VpcEcrEndpointSecurityGroup13145954",
+              "EcsNetworkVpcEcrEndpointSecurityGroup1408040F",
               "GroupId",
             ],
           },
@@ -462,22 +491,22 @@ exports[`Snapshot 1`] = `
         "ServiceName": "com.amazonaws.ap-northeast-1.ecr.api",
         "SubnetIds": [
           {
-            "Ref": "VpcapplicationSubnet1Subnet8B68205B",
+            "Ref": "EcsNetworkVpcapplicationSubnet1SubnetED212D1D",
           },
           {
-            "Ref": "VpcapplicationSubnet2Subnet29670962",
+            "Ref": "EcsNetworkVpcapplicationSubnet2SubnetB57EA027",
           },
         ],
         "VpcEndpointType": "Interface",
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::VPCEndpoint",
     },
-    "VpcEcrEndpointSecurityGroup13145954": {
+    "EcsNetworkVpcEcrEndpointSecurityGroup1408040F": {
       "Properties": {
-        "GroupDescription": "test/Vpc/EcrEndpoint/SecurityGroup",
+        "GroupDescription": "test/EcsNetwork/Vpc/EcrEndpoint/SecurityGroup",
         "SecurityGroupEgress": [
           {
             "CidrIp": "0.0.0.0/0",
@@ -489,7 +518,7 @@ exports[`Snapshot 1`] = `
           {
             "CidrIp": {
               "Fn::GetAtt": [
-                "Vpc8378EB38",
+                "EcsNetworkVpcCDBB0238",
                 "CidrBlock",
               ],
             },
@@ -500,7 +529,7 @@ exports[`Snapshot 1`] = `
                   "from ",
                   {
                     "Fn::GetAtt": [
-                      "Vpc8378EB38",
+                      "EcsNetworkVpcCDBB0238",
                       "CidrBlock",
                     ],
                   },
@@ -516,59 +545,122 @@ exports[`Snapshot 1`] = `
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc",
+            "Value": "test/EcsNetwork/Vpc",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "VpcFlowLog8FF33A73": {
+    "EcsNetworkVpcFlowLogBA2D088B": {
       "Properties": {
         "DeliverLogsPermissionArn": {
           "Fn::GetAtt": [
-            "FlowLogRoleCB27E7DF",
+            "EcsNetworkVpcFlowLogIAMRoleF94FACDC",
             "Arn",
           ],
         },
         "LogDestinationType": "cloud-watch-logs",
         "LogGroupName": {
-          "Ref": "FlowLog22E63E81",
+          "Ref": "EcsNetworkFlowLog01409077",
         },
         "ResourceId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
         "ResourceType": "VPC",
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc",
+            "Value": "test/EcsNetwork/Vpc",
           },
         ],
         "TrafficType": "ALL",
       },
       "Type": "AWS::EC2::FlowLog",
     },
-    "VpcIGWD7BA715C": {
+    "EcsNetworkVpcFlowLogIAMRoleDefaultPolicy0F9BA2EB": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:DescribeLogStreams",
+              ],
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "EcsNetworkFlowLog01409077",
+                  "Arn",
+                ],
+              },
+            },
+            {
+              "Action": "iam:PassRole",
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::GetAtt": [
+                  "EcsNetworkVpcFlowLogIAMRoleF94FACDC",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "EcsNetworkVpcFlowLogIAMRoleDefaultPolicy0F9BA2EB",
+        "Roles": [
+          {
+            "Ref": "EcsNetworkVpcFlowLogIAMRoleF94FACDC",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "EcsNetworkVpcFlowLogIAMRoleF94FACDC": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "vpc-flow-logs.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test/EcsNetwork/Vpc",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "EcsNetworkVpcIGW9D9FF8A6": {
       "Properties": {
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc",
+            "Value": "test/EcsNetwork/Vpc",
           },
         ],
       },
       "Type": "AWS::EC2::InternetGateway",
     },
-    "VpcLogEndpoint02E2D2F2": {
+    "EcsNetworkVpcLogEndpoint08FC3605": {
       "Properties": {
         "PrivateDnsEnabled": true,
         "SecurityGroupIds": [
           {
             "Fn::GetAtt": [
-              "VpcLogEndpointSecurityGroupBDF50B2C",
+              "EcsNetworkVpcLogEndpointSecurityGroup1950D703",
               "GroupId",
             ],
           },
@@ -576,22 +668,22 @@ exports[`Snapshot 1`] = `
         "ServiceName": "com.amazonaws.ap-northeast-1.logs",
         "SubnetIds": [
           {
-            "Ref": "VpcapplicationSubnet1Subnet8B68205B",
+            "Ref": "EcsNetworkVpcapplicationSubnet1SubnetED212D1D",
           },
           {
-            "Ref": "VpcapplicationSubnet2Subnet29670962",
+            "Ref": "EcsNetworkVpcapplicationSubnet2SubnetB57EA027",
           },
         ],
         "VpcEndpointType": "Interface",
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::VPCEndpoint",
     },
-    "VpcLogEndpointSecurityGroupBDF50B2C": {
+    "EcsNetworkVpcLogEndpointSecurityGroup1950D703": {
       "Properties": {
-        "GroupDescription": "test/Vpc/LogEndpoint/SecurityGroup",
+        "GroupDescription": "test/EcsNetwork/Vpc/LogEndpoint/SecurityGroup",
         "SecurityGroupEgress": [
           {
             "CidrIp": "0.0.0.0/0",
@@ -603,7 +695,7 @@ exports[`Snapshot 1`] = `
           {
             "CidrIp": {
               "Fn::GetAtt": [
-                "Vpc8378EB38",
+                "EcsNetworkVpcCDBB0238",
                 "CidrBlock",
               ],
             },
@@ -614,7 +706,7 @@ exports[`Snapshot 1`] = `
                   "from ",
                   {
                     "Fn::GetAtt": [
-                      "Vpc8378EB38",
+                      "EcsNetworkVpcCDBB0238",
                       "CidrBlock",
                     ],
                   },
@@ -630,35 +722,35 @@ exports[`Snapshot 1`] = `
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc",
+            "Value": "test/EcsNetwork/Vpc",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "VpcS3Endpoint4A3DE4B5": {
+    "EcsNetworkVpcS3Endpoint516D3570": {
       "Properties": {
         "RouteTableIds": [
           {
-            "Ref": "VpcapplicationSubnet1RouteTableF03E8296",
+            "Ref": "EcsNetworkVpcapplicationSubnet1RouteTable0A33BC1B",
           },
           {
-            "Ref": "VpcapplicationSubnet2RouteTable17378AED",
+            "Ref": "EcsNetworkVpcapplicationSubnet2RouteTable92610BA9",
           },
           {
-            "Ref": "VpcingressSubnet1RouteTable804C7A26",
+            "Ref": "EcsNetworkVpcingressSubnet1RouteTable20245959",
           },
           {
-            "Ref": "VpcingressSubnet2RouteTable8B0E23A7",
+            "Ref": "EcsNetworkVpcingressSubnet2RouteTableF984A02B",
           },
           {
-            "Ref": "VpcdatabaseSubnet1RouteTableF3B572E4",
+            "Ref": "EcsNetworkVpcdatabaseSubnet1RouteTable9D7AFF58",
           },
           {
-            "Ref": "VpcdatabaseSubnet2RouteTable1E50BD8E",
+            "Ref": "EcsNetworkVpcdatabaseSubnet2RouteTable26547453",
           },
         ],
         "ServiceName": {
@@ -675,18 +767,18 @@ exports[`Snapshot 1`] = `
         },
         "VpcEndpointType": "Gateway",
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::VPCEndpoint",
     },
-    "VpcSSMInterfaceA9FEB3C2": {
+    "EcsNetworkVpcSSMInterface0C43CB8D": {
       "Properties": {
         "PrivateDnsEnabled": true,
         "SecurityGroupIds": [
           {
             "Fn::GetAtt": [
-              "VpcSSMInterfaceSecurityGroup428E6075",
+              "EcsNetworkVpcSSMInterfaceSecurityGroup6CAE469E",
               "GroupId",
             ],
           },
@@ -694,22 +786,22 @@ exports[`Snapshot 1`] = `
         "ServiceName": "com.amazonaws.ap-northeast-1.ssm",
         "SubnetIds": [
           {
-            "Ref": "VpcapplicationSubnet1Subnet8B68205B",
+            "Ref": "EcsNetworkVpcapplicationSubnet1SubnetED212D1D",
           },
           {
-            "Ref": "VpcapplicationSubnet2Subnet29670962",
+            "Ref": "EcsNetworkVpcapplicationSubnet2SubnetB57EA027",
           },
         ],
         "VpcEndpointType": "Interface",
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::VPCEndpoint",
     },
-    "VpcSSMInterfaceSecurityGroup428E6075": {
+    "EcsNetworkVpcSSMInterfaceSecurityGroup6CAE469E": {
       "Properties": {
-        "GroupDescription": "test/Vpc/SSMInterface/SecurityGroup",
+        "GroupDescription": "test/EcsNetwork/Vpc/SSMInterface/SecurityGroup",
         "SecurityGroupEgress": [
           {
             "CidrIp": "0.0.0.0/0",
@@ -721,7 +813,7 @@ exports[`Snapshot 1`] = `
           {
             "CidrIp": {
               "Fn::GetAtt": [
-                "Vpc8378EB38",
+                "EcsNetworkVpcCDBB0238",
                 "CidrBlock",
               ],
             },
@@ -732,7 +824,7 @@ exports[`Snapshot 1`] = `
                   "from ",
                   {
                     "Fn::GetAtt": [
-                      "Vpc8378EB38",
+                      "EcsNetworkVpcCDBB0238",
                       "CidrBlock",
                     ],
                   },
@@ -748,22 +840,22 @@ exports[`Snapshot 1`] = `
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc",
+            "Value": "test/EcsNetwork/Vpc",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "VpcSecretsEndpointFBE119FA": {
+    "EcsNetworkVpcSecretsEndpoint818B94C7": {
       "Properties": {
         "PrivateDnsEnabled": true,
         "SecurityGroupIds": [
           {
             "Fn::GetAtt": [
-              "VpcSecretsEndpointSecurityGroup81CD588F",
+              "EcsNetworkVpcSecretsEndpointSecurityGroupE84890C3",
               "GroupId",
             ],
           },
@@ -771,22 +863,22 @@ exports[`Snapshot 1`] = `
         "ServiceName": "com.amazonaws.ap-northeast-1.secretsmanager",
         "SubnetIds": [
           {
-            "Ref": "VpcapplicationSubnet1Subnet8B68205B",
+            "Ref": "EcsNetworkVpcapplicationSubnet1SubnetED212D1D",
           },
           {
-            "Ref": "VpcapplicationSubnet2Subnet29670962",
+            "Ref": "EcsNetworkVpcapplicationSubnet2SubnetB57EA027",
           },
         ],
         "VpcEndpointType": "Interface",
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::VPCEndpoint",
     },
-    "VpcSecretsEndpointSecurityGroup81CD588F": {
+    "EcsNetworkVpcSecretsEndpointSecurityGroupE84890C3": {
       "Properties": {
-        "GroupDescription": "test/Vpc/SecretsEndpoint/SecurityGroup",
+        "GroupDescription": "test/EcsNetwork/Vpc/SecretsEndpoint/SecurityGroup",
         "SecurityGroupEgress": [
           {
             "CidrIp": "0.0.0.0/0",
@@ -798,7 +890,7 @@ exports[`Snapshot 1`] = `
           {
             "CidrIp": {
               "Fn::GetAtt": [
-                "Vpc8378EB38",
+                "EcsNetworkVpcCDBB0238",
                 "CidrBlock",
               ],
             },
@@ -809,7 +901,7 @@ exports[`Snapshot 1`] = `
                   "from ",
                   {
                     "Fn::GetAtt": [
-                      "Vpc8378EB38",
+                      "EcsNetworkVpcCDBB0238",
                       "CidrBlock",
                     ],
                   },
@@ -825,64 +917,64 @@ exports[`Snapshot 1`] = `
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc",
+            "Value": "test/EcsNetwork/Vpc",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
-    "VpcVPCGWBF912B6E": {
+    "EcsNetworkVpcVPCGWAF794370": {
       "Properties": {
         "InternetGatewayId": {
-          "Ref": "VpcIGWD7BA715C",
+          "Ref": "EcsNetworkVpcIGW9D9FF8A6",
         },
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::VPCGatewayAttachment",
     },
-    "VpcapplicationSubnet1DefaultRouteD1F37131": {
+    "EcsNetworkVpcapplicationSubnet1DefaultRoute51EF71FC": {
       "Properties": {
         "DestinationCidrBlock": "0.0.0.0/0",
         "NatGatewayId": {
-          "Ref": "VpcingressSubnet1NATGateway5ADD866D",
+          "Ref": "EcsNetworkVpcingressSubnet1NATGatewayD9E4CCA8",
         },
         "RouteTableId": {
-          "Ref": "VpcapplicationSubnet1RouteTableF03E8296",
+          "Ref": "EcsNetworkVpcapplicationSubnet1RouteTable0A33BC1B",
         },
       },
       "Type": "AWS::EC2::Route",
     },
-    "VpcapplicationSubnet1RouteTableAssociation75D5245D": {
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "VpcapplicationSubnet1RouteTableF03E8296",
-        },
-        "SubnetId": {
-          "Ref": "VpcapplicationSubnet1Subnet8B68205B",
-        },
-      },
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-    },
-    "VpcapplicationSubnet1RouteTableF03E8296": {
+    "EcsNetworkVpcapplicationSubnet1RouteTable0A33BC1B": {
       "Properties": {
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc/applicationSubnet1",
+            "Value": "test/EcsNetwork/Vpc/applicationSubnet1",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::RouteTable",
     },
-    "VpcapplicationSubnet1Subnet8B68205B": {
+    "EcsNetworkVpcapplicationSubnet1RouteTableAssociationB1CA77EE": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "EcsNetworkVpcapplicationSubnet1RouteTable0A33BC1B",
+        },
+        "SubnetId": {
+          "Ref": "EcsNetworkVpcapplicationSubnet1SubnetED212D1D",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "EcsNetworkVpcapplicationSubnet1SubnetED212D1D": {
       "Properties": {
         "AvailabilityZone": {
           "Fn::Select": [
@@ -905,53 +997,53 @@ exports[`Snapshot 1`] = `
           },
           {
             "Key": "Name",
-            "Value": "test/Vpc/applicationSubnet1",
+            "Value": "test/EcsNetwork/Vpc/applicationSubnet1",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::Subnet",
     },
-    "VpcapplicationSubnet2DefaultRoute928D347B": {
+    "EcsNetworkVpcapplicationSubnet2DefaultRouteDAC10721": {
       "Properties": {
         "DestinationCidrBlock": "0.0.0.0/0",
         "NatGatewayId": {
-          "Ref": "VpcingressSubnet2NATGatewayDAA0F549",
+          "Ref": "EcsNetworkVpcingressSubnet2NATGatewayDC58D5F5",
         },
         "RouteTableId": {
-          "Ref": "VpcapplicationSubnet2RouteTable17378AED",
+          "Ref": "EcsNetworkVpcapplicationSubnet2RouteTable92610BA9",
         },
       },
       "Type": "AWS::EC2::Route",
     },
-    "VpcapplicationSubnet2RouteTable17378AED": {
+    "EcsNetworkVpcapplicationSubnet2RouteTable92610BA9": {
       "Properties": {
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc/applicationSubnet2",
+            "Value": "test/EcsNetwork/Vpc/applicationSubnet2",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::RouteTable",
     },
-    "VpcapplicationSubnet2RouteTableAssociationF25110CC": {
+    "EcsNetworkVpcapplicationSubnet2RouteTableAssociation2F8ECB7A": {
       "Properties": {
         "RouteTableId": {
-          "Ref": "VpcapplicationSubnet2RouteTable17378AED",
+          "Ref": "EcsNetworkVpcapplicationSubnet2RouteTable92610BA9",
         },
         "SubnetId": {
-          "Ref": "VpcapplicationSubnet2Subnet29670962",
+          "Ref": "EcsNetworkVpcapplicationSubnet2SubnetB57EA027",
         },
       },
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
     },
-    "VpcapplicationSubnet2Subnet29670962": {
+    "EcsNetworkVpcapplicationSubnet2SubnetB57EA027": {
       "Properties": {
         "AvailabilityZone": {
           "Fn::Select": [
@@ -974,41 +1066,41 @@ exports[`Snapshot 1`] = `
           },
           {
             "Key": "Name",
-            "Value": "test/Vpc/applicationSubnet2",
+            "Value": "test/EcsNetwork/Vpc/applicationSubnet2",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::Subnet",
     },
-    "VpcdatabaseSubnet1RouteTableAssociationEE6CA36B": {
-      "Properties": {
-        "RouteTableId": {
-          "Ref": "VpcdatabaseSubnet1RouteTableF3B572E4",
-        },
-        "SubnetId": {
-          "Ref": "VpcdatabaseSubnet1SubnetD53A427B",
-        },
-      },
-      "Type": "AWS::EC2::SubnetRouteTableAssociation",
-    },
-    "VpcdatabaseSubnet1RouteTableF3B572E4": {
+    "EcsNetworkVpcdatabaseSubnet1RouteTable9D7AFF58": {
       "Properties": {
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc/databaseSubnet1",
+            "Value": "test/EcsNetwork/Vpc/databaseSubnet1",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::RouteTable",
     },
-    "VpcdatabaseSubnet1SubnetD53A427B": {
+    "EcsNetworkVpcdatabaseSubnet1RouteTableAssociation7D375E70": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "EcsNetworkVpcdatabaseSubnet1RouteTable9D7AFF58",
+        },
+        "SubnetId": {
+          "Ref": "EcsNetworkVpcdatabaseSubnet1Subnet2CE02314",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "EcsNetworkVpcdatabaseSubnet1Subnet2CE02314": {
       "Properties": {
         "AvailabilityZone": {
           "Fn::Select": [
@@ -1031,41 +1123,41 @@ exports[`Snapshot 1`] = `
           },
           {
             "Key": "Name",
-            "Value": "test/Vpc/databaseSubnet1",
+            "Value": "test/EcsNetwork/Vpc/databaseSubnet1",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::Subnet",
     },
-    "VpcdatabaseSubnet2RouteTable1E50BD8E": {
+    "EcsNetworkVpcdatabaseSubnet2RouteTable26547453": {
       "Properties": {
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc/databaseSubnet2",
+            "Value": "test/EcsNetwork/Vpc/databaseSubnet2",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::RouteTable",
     },
-    "VpcdatabaseSubnet2RouteTableAssociationCADBAF9A": {
+    "EcsNetworkVpcdatabaseSubnet2RouteTableAssociation8CDB8B6F": {
       "Properties": {
         "RouteTableId": {
-          "Ref": "VpcdatabaseSubnet2RouteTable1E50BD8E",
+          "Ref": "EcsNetworkVpcdatabaseSubnet2RouteTable26547453",
         },
         "SubnetId": {
-          "Ref": "VpcdatabaseSubnet2Subnet75663D63",
+          "Ref": "EcsNetworkVpcdatabaseSubnet2SubnetDABBF4E6",
         },
       },
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
     },
-    "VpcdatabaseSubnet2Subnet75663D63": {
+    "EcsNetworkVpcdatabaseSubnet2SubnetDABBF4E6": {
       "Properties": {
         "AvailabilityZone": {
           "Fn::Select": [
@@ -1088,92 +1180,92 @@ exports[`Snapshot 1`] = `
           },
           {
             "Key": "Name",
-            "Value": "test/Vpc/databaseSubnet2",
+            "Value": "test/EcsNetwork/Vpc/databaseSubnet2",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::Subnet",
     },
-    "VpcingressSubnet1DefaultRoute4188A546": {
+    "EcsNetworkVpcingressSubnet1DefaultRoute62ED081D": {
       "DependsOn": [
-        "VpcVPCGWBF912B6E",
+        "EcsNetworkVpcVPCGWAF794370",
       ],
       "Properties": {
         "DestinationCidrBlock": "0.0.0.0/0",
         "GatewayId": {
-          "Ref": "VpcIGWD7BA715C",
+          "Ref": "EcsNetworkVpcIGW9D9FF8A6",
         },
         "RouteTableId": {
-          "Ref": "VpcingressSubnet1RouteTable804C7A26",
+          "Ref": "EcsNetworkVpcingressSubnet1RouteTable20245959",
         },
       },
       "Type": "AWS::EC2::Route",
     },
-    "VpcingressSubnet1EIPD1FA297B": {
+    "EcsNetworkVpcingressSubnet1EIP76812DA3": {
       "Properties": {
         "Domain": "vpc",
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc/ingressSubnet1",
+            "Value": "test/EcsNetwork/Vpc/ingressSubnet1",
           },
         ],
       },
       "Type": "AWS::EC2::EIP",
     },
-    "VpcingressSubnet1NATGateway5ADD866D": {
+    "EcsNetworkVpcingressSubnet1NATGatewayD9E4CCA8": {
       "DependsOn": [
-        "VpcingressSubnet1DefaultRoute4188A546",
-        "VpcingressSubnet1RouteTableAssociation5DF54E70",
+        "EcsNetworkVpcingressSubnet1DefaultRoute62ED081D",
+        "EcsNetworkVpcingressSubnet1RouteTableAssociationCA737C90",
       ],
       "Properties": {
         "AllocationId": {
           "Fn::GetAtt": [
-            "VpcingressSubnet1EIPD1FA297B",
+            "EcsNetworkVpcingressSubnet1EIP76812DA3",
             "AllocationId",
           ],
         },
         "SubnetId": {
-          "Ref": "VpcingressSubnet1Subnet059F22C6",
+          "Ref": "EcsNetworkVpcingressSubnet1SubnetA8ACF814",
         },
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc/ingressSubnet1",
+            "Value": "test/EcsNetwork/Vpc/ingressSubnet1",
           },
         ],
       },
       "Type": "AWS::EC2::NatGateway",
     },
-    "VpcingressSubnet1RouteTable804C7A26": {
+    "EcsNetworkVpcingressSubnet1RouteTable20245959": {
       "Properties": {
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc/ingressSubnet1",
+            "Value": "test/EcsNetwork/Vpc/ingressSubnet1",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::RouteTable",
     },
-    "VpcingressSubnet1RouteTableAssociation5DF54E70": {
+    "EcsNetworkVpcingressSubnet1RouteTableAssociationCA737C90": {
       "Properties": {
         "RouteTableId": {
-          "Ref": "VpcingressSubnet1RouteTable804C7A26",
+          "Ref": "EcsNetworkVpcingressSubnet1RouteTable20245959",
         },
         "SubnetId": {
-          "Ref": "VpcingressSubnet1Subnet059F22C6",
+          "Ref": "EcsNetworkVpcingressSubnet1SubnetA8ACF814",
         },
       },
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
     },
-    "VpcingressSubnet1Subnet059F22C6": {
+    "EcsNetworkVpcingressSubnet1SubnetA8ACF814": {
       "Properties": {
         "AvailabilityZone": {
           "Fn::Select": [
@@ -1196,92 +1288,92 @@ exports[`Snapshot 1`] = `
           },
           {
             "Key": "Name",
-            "Value": "test/Vpc/ingressSubnet1",
+            "Value": "test/EcsNetwork/Vpc/ingressSubnet1",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::Subnet",
     },
-    "VpcingressSubnet2DefaultRoute18203BC3": {
+    "EcsNetworkVpcingressSubnet2DefaultRouteCF3E4AFC": {
       "DependsOn": [
-        "VpcVPCGWBF912B6E",
+        "EcsNetworkVpcVPCGWAF794370",
       ],
       "Properties": {
         "DestinationCidrBlock": "0.0.0.0/0",
         "GatewayId": {
-          "Ref": "VpcIGWD7BA715C",
+          "Ref": "EcsNetworkVpcIGW9D9FF8A6",
         },
         "RouteTableId": {
-          "Ref": "VpcingressSubnet2RouteTable8B0E23A7",
+          "Ref": "EcsNetworkVpcingressSubnet2RouteTableF984A02B",
         },
       },
       "Type": "AWS::EC2::Route",
     },
-    "VpcingressSubnet2EIP87470ECB": {
+    "EcsNetworkVpcingressSubnet2EIP05765469": {
       "Properties": {
         "Domain": "vpc",
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc/ingressSubnet2",
+            "Value": "test/EcsNetwork/Vpc/ingressSubnet2",
           },
         ],
       },
       "Type": "AWS::EC2::EIP",
     },
-    "VpcingressSubnet2NATGatewayDAA0F549": {
+    "EcsNetworkVpcingressSubnet2NATGatewayDC58D5F5": {
       "DependsOn": [
-        "VpcingressSubnet2DefaultRoute18203BC3",
-        "VpcingressSubnet2RouteTableAssociation39E1BA3A",
+        "EcsNetworkVpcingressSubnet2DefaultRouteCF3E4AFC",
+        "EcsNetworkVpcingressSubnet2RouteTableAssociationB0981CEC",
       ],
       "Properties": {
         "AllocationId": {
           "Fn::GetAtt": [
-            "VpcingressSubnet2EIP87470ECB",
+            "EcsNetworkVpcingressSubnet2EIP05765469",
             "AllocationId",
           ],
         },
         "SubnetId": {
-          "Ref": "VpcingressSubnet2SubnetF175D754",
+          "Ref": "EcsNetworkVpcingressSubnet2Subnet259A3970",
         },
         "Tags": [
           {
             "Key": "Name",
-            "Value": "test/Vpc/ingressSubnet2",
+            "Value": "test/EcsNetwork/Vpc/ingressSubnet2",
           },
         ],
       },
       "Type": "AWS::EC2::NatGateway",
     },
-    "VpcingressSubnet2RouteTable8B0E23A7": {
-      "Properties": {
-        "Tags": [
-          {
-            "Key": "Name",
-            "Value": "test/Vpc/ingressSubnet2",
-          },
-        ],
-        "VpcId": {
-          "Ref": "Vpc8378EB38",
-        },
-      },
-      "Type": "AWS::EC2::RouteTable",
-    },
-    "VpcingressSubnet2RouteTableAssociation39E1BA3A": {
+    "EcsNetworkVpcingressSubnet2RouteTableAssociationB0981CEC": {
       "Properties": {
         "RouteTableId": {
-          "Ref": "VpcingressSubnet2RouteTable8B0E23A7",
+          "Ref": "EcsNetworkVpcingressSubnet2RouteTableF984A02B",
         },
         "SubnetId": {
-          "Ref": "VpcingressSubnet2SubnetF175D754",
+          "Ref": "EcsNetworkVpcingressSubnet2Subnet259A3970",
         },
       },
       "Type": "AWS::EC2::SubnetRouteTableAssociation",
     },
-    "VpcingressSubnet2SubnetF175D754": {
+    "EcsNetworkVpcingressSubnet2RouteTableF984A02B": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test/EcsNetwork/Vpc/ingressSubnet2",
+          },
+        ],
+        "VpcId": {
+          "Ref": "EcsNetworkVpcCDBB0238",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "EcsNetworkVpcingressSubnet2Subnet259A3970": {
       "Properties": {
         "AvailabilityZone": {
           "Fn::Select": [
@@ -1304,11 +1396,11 @@ exports[`Snapshot 1`] = `
           },
           {
             "Key": "Name",
-            "Value": "test/Vpc/ingressSubnet2",
+            "Value": "test/EcsNetwork/Vpc/ingressSubnet2",
           },
         ],
         "VpcId": {
-          "Ref": "Vpc8378EB38",
+          "Ref": "EcsNetworkVpcCDBB0238",
         },
       },
       "Type": "AWS::EC2::Subnet",

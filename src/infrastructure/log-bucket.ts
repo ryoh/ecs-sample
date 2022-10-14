@@ -3,6 +3,9 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 
+/**
+ * For logging object bucket
+ */
 export class LogBucket extends Construct {
   public readonly bucket: s3.Bucket;
 
@@ -14,6 +17,7 @@ export class LogBucket extends Construct {
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: true,
       removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
     });
 
     NagSuppressions.addResourceSuppressions(this.bucket, [
