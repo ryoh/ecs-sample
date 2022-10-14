@@ -10,15 +10,14 @@ exports[`Snapshot 1`] = `
     },
   },
   "Resources": {
-    "EcsLoadBalancerAccessLog0242E61B": {
+    "EcsLoadBalancerAccessLog03BF6BC6": {
       "DeletionPolicy": "Retain",
       "Metadata": {
         "cdk_nag": {
           "rules_to_suppress": [
             {
               "id": "AwsSolutions-S1",
-              "is_reason_encoded": true,
-              "reason": "TkxC44Ki44Kv44K744K544Ot44Kw5L+d5a2Y55So44OQ44Kx44OD44OI44Gu44Gf44KB44CB44GT44KM6Ieq5L2T44Gu44Ki44Kv44K744K544Ot44Kw44Gv5LiN6KaB",
+              "reason": "Bucket for storing access logs, so no access logs are needed for this bucket itself.",
             },
           ],
         },
@@ -43,10 +42,10 @@ exports[`Snapshot 1`] = `
       "Type": "AWS::S3::Bucket",
       "UpdateReplacePolicy": "Retain",
     },
-    "EcsLoadBalancerAccessLogPolicy2E109E7E": {
+    "EcsLoadBalancerAccessLogPolicy06C55B9A": {
       "Properties": {
         "Bucket": {
-          "Ref": "EcsLoadBalancerAccessLog0242E61B",
+          "Ref": "EcsLoadBalancerAccessLog03BF6BC6",
         },
         "PolicyDocument": {
           "Statement": [
@@ -64,7 +63,7 @@ exports[`Snapshot 1`] = `
               "Resource": [
                 {
                   "Fn::GetAtt": [
-                    "EcsLoadBalancerAccessLog0242E61B",
+                    "EcsLoadBalancerAccessLog03BF6BC6",
                     "Arn",
                   ],
                 },
@@ -74,7 +73,7 @@ exports[`Snapshot 1`] = `
                     [
                       {
                         "Fn::GetAtt": [
-                          "EcsLoadBalancerAccessLog0242E61B",
+                          "EcsLoadBalancerAccessLog03BF6BC6",
                           "Arn",
                         ],
                       },
@@ -114,7 +113,7 @@ exports[`Snapshot 1`] = `
                   [
                     {
                       "Fn::GetAtt": [
-                        "EcsLoadBalancerAccessLog0242E61B",
+                        "EcsLoadBalancerAccessLog03BF6BC6",
                         "Arn",
                       ],
                     },
@@ -144,7 +143,7 @@ exports[`Snapshot 1`] = `
                   [
                     {
                       "Fn::GetAtt": [
-                        "EcsLoadBalancerAccessLog0242E61B",
+                        "EcsLoadBalancerAccessLog03BF6BC6",
                         "Arn",
                       ],
                     },
@@ -165,7 +164,7 @@ exports[`Snapshot 1`] = `
               },
               "Resource": {
                 "Fn::GetAtt": [
-                  "EcsLoadBalancerAccessLog0242E61B",
+                  "EcsLoadBalancerAccessLog03BF6BC6",
                   "Arn",
                 ],
               },
@@ -178,8 +177,8 @@ exports[`Snapshot 1`] = `
     },
     "EcsLoadBalancerED63ACE7": {
       "DependsOn": [
-        "EcsLoadBalancerAccessLogPolicy2E109E7E",
-        "EcsLoadBalancerAccessLog0242E61B",
+        "EcsLoadBalancerAccessLogPolicy06C55B9A",
+        "EcsLoadBalancerAccessLog03BF6BC6",
       ],
       "Properties": {
         "LoadBalancerAttributes": [
@@ -194,7 +193,7 @@ exports[`Snapshot 1`] = `
           {
             "Key": "access_logs.s3.bucket",
             "Value": {
-              "Ref": "EcsLoadBalancerAccessLog0242E61B",
+              "Ref": "EcsLoadBalancerAccessLog03BF6BC6",
             },
           },
           {

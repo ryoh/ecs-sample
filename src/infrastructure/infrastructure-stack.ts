@@ -3,9 +3,9 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as elv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
-import * as s3 from 'aws-cdk-lib/aws-s3';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
+import { LogBucket } from './log-bucket';
 
 export class InfrastructureStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
@@ -75,18 +75,8 @@ export class InfrastructureStack extends Stack {
       internetFacing: false,
     });
     // AccessLog
-    const accessLogBucket = new s3.Bucket(this, 'EcsLoadBalancerAccessLog', {
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      encryption: s3.BucketEncryption.S3_MANAGED,
-      enforceSSL: true,
-    });
-    NagSuppressions.addResourceSuppressions(accessLogBucket, [
-      {
-        id: 'AwsSolutions-S1',
-        reason: 'NLBアクセスログ保存用バケットのため、これ自体のアクセスログは不要',
-      },
-    ]);
-    lb.logAccessLogs(accessLogBucket);
+    const accessLogBucket = new LogBucket(this, 'EcsLoadBalancerAccessLog');
+    lb.logAccessLogs(accessLogBucket.bucket);
     // SecurityGroup
     const lbsg = new ec2.SecurityGroup(this, 'EcsServiceSecurityGroup', {
       vpc,
