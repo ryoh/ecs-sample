@@ -10,7 +10,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { AwsSolutionsChecks, NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
-import { InfrastructureStack } from './stacks/infrastructure-stack';
+import { InfrastructureStack } from './infrastructure/infrastructure-stack';
 
 export class EcsSample extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
