@@ -2,16 +2,17 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
 
-export class Network {
+export class Network extends Construct {
   public readonly vpc: ec2.Vpc;
 
   constructor(scope: Construct, id: string) {
+    super(scope, id);
 
     // FlowLogs
-    const logGroup = new logs.LogGroup(scope, `${id}-FlowLog`);
+    const logGroup = new logs.LogGroup(this, 'FlowLog');
 
     // VPC
-    const vpc = new ec2.Vpc(scope, `${id}-Vpc`, {
+    const vpc = new ec2.Vpc(this, 'Vpc', {
       maxAzs: 2,
       cidr: '10.0.0.0/16',
       enableDnsHostnames: true,
@@ -34,7 +35,7 @@ export class Network {
         },
       ],
     });
-    vpc.addFlowLog(`${id}-FlowLog`, {
+    vpc.addFlowLog('FlowLog', {
       destination: ec2.FlowLogDestination.toCloudWatchLogs(logGroup),
     });
     this.vpc = vpc;
