@@ -9,7 +9,6 @@
     "deploy": "npx projen deploy",
     "destroy": "npx projen destroy",
     "diff": "npx projen diff",
-    "docgen": "npx projen docgen",
     "eject": "npx projen eject",
     "eslint": "npx projen eslint",
     "package": "npx projen package",
@@ -42,7 +41,6 @@
     "projen": "^0.63.0",
     "ts-jest": "^29.0.3",
     "ts-node": "^10.9.1",
-    "typedoc": "*",
     "typescript": "^4.8.4"
   },
   "dependencies": {

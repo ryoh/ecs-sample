@@ -5,7 +5,6 @@ const project = new awscdk.AwsCdkTypeScriptApp({
   defaultReleaseBranch: 'main',
   name: 'ecs-sample',
   devContainer: true,
-  docgen: true,
   context: {
     ['target']: 'dev',
     ['dev']: {
