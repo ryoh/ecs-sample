@@ -1,4 +1,4 @@
-import { App, Stack, StackProps } from 'aws-cdk-lib';
+import { App, Stack, StackProps, Aspects } from 'aws-cdk-lib';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
@@ -8,8 +8,9 @@ import * as elv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
-import { NagSuppressions } from 'cdk-nag';
+import { AwsSolutionsChecks, NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
+import { InfrastructureStack } from './stacks/infrastructure';
 
 export class EcsSample extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
@@ -165,9 +166,11 @@ const devEnv = {
 
 const app = new App();
 
-new EcsSample(app, 'workspace-dev', { env: devEnv });
+//new EcsSample(app, 'workspace-dev', { env: devEnv });
 // new MyStack(app, 'workspace-prod', { env: prodEnv });
 
-//Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
+new InfrastructureStack(app, 'InfrastructureStack', { env: devEnv });
+
+Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
 
 app.synth();
