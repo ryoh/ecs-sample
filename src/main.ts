@@ -1,4 +1,4 @@
-import { App, Stack, StackProps, Aspects } from 'aws-cdk-lib';
+import { App, Stack, StackProps, Aspects, Tags } from 'aws-cdk-lib';
 import * as apigw from 'aws-cdk-lib/aws-apigateway';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
@@ -11,6 +11,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import { AwsSolutionsChecks, NagSuppressions } from 'cdk-nag';
 import { Construct } from 'constructs';
 import { InfrastructureStack } from './infrastructure/infrastructure-stack';
+import { StageType, Context, EnvContext } from './utils/context';
 
 export class EcsSample extends Stack {
   constructor(scope: Construct, id: string, props: StackProps = {}) {
@@ -159,17 +160,25 @@ export class EcsSample extends Stack {
 }
 
 // for development, use account/region from cdk cli
+/*
 const devEnv = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
   region: process.env.CDK_DEFAULT_REGION,
 };
+*/
 
 const app = new App();
+const stage = app.node.tryGetContext('stage')! as StageType;
+const context = new Context(stage, app.node);
+const env: EnvContext = context.env ?? {
+  account: process.env.CDK_DEFAULT_ACCOUNT,
+  region: process.env.CDK_DEFAULT_REGION,
+};
 
-//new EcsSample(app, 'workspace-dev', { env: devEnv });
-// new MyStack(app, 'workspace-prod', { env: prodEnv });
+Tags.of(app).add('Project', context.project);
+Tags.of(app).add('Environment', context.stage);
 
-new InfrastructureStack(app, 'InfrastructureStack', { env: devEnv });
+new InfrastructureStack(app, 'InfrastructureStack', { env, context });
 
 Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }));
 

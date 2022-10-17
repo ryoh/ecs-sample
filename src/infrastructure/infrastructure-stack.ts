@@ -3,9 +3,14 @@ import { Stack, StackProps } from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as elv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import { Construct } from 'constructs';
+import { Context } from '../utils/context';
 import { LogBucket } from './log-bucket';
 import { Network } from './network';
 //import { RestApiGateway } from './apigateway';
+
+interface InfrastructureStackProps extends StackProps {
+  context: Context;
+}
 
 /**
  * Create VPC and LoadBalancer Resource
@@ -15,7 +20,7 @@ export class InfrastructureStack extends Stack {
   public readonly loadbalancer: elv2.NetworkLoadBalancer;
   //public readonly apigateway: apigw.RestApi;
 
-  constructor(scope: Construct, id: string, props: StackProps = {}) {
+  constructor(scope: Construct, id: string, props: InfrastructureStackProps) {
     super(scope, id, props);
 
     // VPC and VPCEndpoint
