@@ -13,7 +13,7 @@ export class EcsSample extends Stack {
     // VPC
     const vpc = new ec2.Vpc(this, 'Vpc', {
       maxAzs: 1,
-      cidr: '10.0.0.0/16',
+      ipAddresses: ec2.IpAddresses.cidr('10.0.0.0/16'),
       subnetConfiguration: [
         {
           name: 'isolate',
